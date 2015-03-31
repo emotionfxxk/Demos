@@ -1,6 +1,9 @@
 package com.example.sean.locationwheeldemo;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.LinearGradient;
+import android.graphics.Shader;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
@@ -13,6 +16,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import kankan.wheel.widget.OnWheelClickedListener;
+import kankan.wheel.widget.OnWheelScrollListener;
 import kankan.wheel.widget.WheelView;
 import kankan.wheel.widget.adapters.AbstractWheelTextAdapter;
 
@@ -56,7 +60,7 @@ public class WheelActivity extends ActionBarActivity {
     /**
      * A placeholder fragment containing a simple view.
      */
-    public static class PlaceholderFragment extends Fragment implements OnWheelClickedListener, View.OnClickListener {
+    public static class PlaceholderFragment extends Fragment implements OnWheelClickedListener, View.OnClickListener, OnWheelScrollListener {
         private final static String TAG = "PlaceholderFragment";
         public static int LOC_INDEX_DISTRICT = 0;
         public static int LOC_INDEX_STREET = 1;
@@ -77,9 +81,10 @@ public class WheelActivity extends ActionBarActivity {
                                  Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_wheel, container, false);
             mLocationWheel = (WheelView) rootView.findViewById(R.id.location);
-            mLocationWheel.setVisibleItems(10);
+            mLocationWheel.setVisibleItems(6);
             mLocationWheel.setViewAdapter(new LocationAdapter(getActivity(), mDistrict, LOC_INDEX_DISTRICT));
             mLocationWheel.addClickingListener(this);
+            mLocationWheel.addScrollingListener(this);
             mParentText = (TextView) rootView.findViewById(R.id.parent_location);
             mParentText.setOnClickListener(this);
             return rootView;
@@ -112,6 +117,15 @@ public class WheelActivity extends ActionBarActivity {
                     mLocationWheel.setViewAdapter(new LocationAdapter(getActivity(), mDistrict, LOC_INDEX_DISTRICT));
                 }
             }
+        }
+        @Override
+        public void onScrollingStarted(WheelView wheel) {
+
+        }
+
+        @Override
+        public void onScrollingFinished(WheelView wheel) {
+
         }
 
         private class LocationAdapter extends AbstractWheelTextAdapter {
