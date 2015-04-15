@@ -33,9 +33,19 @@ public class SendImageTask implements Runnable {
         mFilePos = filePos;
         mCallback = cb;
     }
+    private static int[] mStatics = new int[18];
+    private static long[] mStartTimes = new long[18];
     @Override
     public void run() {
         Log.i(TAG, "start transfer image:" + mFileName + ", for pos:" + mFilePos);
+        if(mStatics[mFilePos] == 0) {
+            mStartTimes[mFilePos] = System.currentTimeMillis();
+        }
+        mStatics[mFilePos]++;
+        long delta = System.currentTimeMillis() - mStartTimes[mFilePos];
+        if(delta > 0) {
+            Log.i(TAG, "file pos:" + mFilePos + ", fps:" + mStatics[mFilePos] / (delta / 1000f));
+        }
         OutputStream os = null;
         AssetFileDescriptor afd = null;
         try {
@@ -66,15 +76,16 @@ public class SendImageTask implements Runnable {
             mCallback.onSendImageSucceed(mClient);
         } catch (Exception e) {
             Log.e(TAG, "exception raised while transferring file:" + e.getMessage());
+            e.printStackTrace();
             mCallback.onSendImageFailed(mClient);
         } finally {
             try {
                 if(afd != null) {
                     afd.close();
                 }
-                if (os != null) {
-                    os.close();
-                }
+                //if (os != null) {
+                    //os.close();
+                //}
             } catch (IOException e) {
                 e.printStackTrace();
             }

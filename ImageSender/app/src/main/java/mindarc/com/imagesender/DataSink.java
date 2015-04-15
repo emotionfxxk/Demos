@@ -32,13 +32,11 @@ public class DataSink extends State {
     private int SERVER_COUNT = 6;
     private ThreadPoolExecutor mExecutor;
 
-    private boolean mIsStarted;
     private AssetManager mAssetManager;
     public DataSink(AssetManager assetManager) {
         mAssetManager = assetManager;
-        mIsStarted = false;
         // init thread pool executor
-        mExecutor = new ThreadPoolExecutor(SERVER_COUNT, SERVER_COUNT, 1, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(2));
+        mExecutor = new ThreadPoolExecutor(SERVER_COUNT, SERVER_COUNT, 1, TimeUnit.SECONDS, new ArrayBlockingQueue<Runnable>(36));
     }
 
     @Override

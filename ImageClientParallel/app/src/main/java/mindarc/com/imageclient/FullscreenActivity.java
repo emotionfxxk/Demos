@@ -4,13 +4,20 @@ import mindarc.com.imageclient.util.SystemUiHider;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
+import android.util.SparseArray;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.BaseAdapter;
+import android.widget.GridView;
 import android.widget.ImageView;
 
 
@@ -48,28 +55,100 @@ public class FullscreenActivity extends Activity {
      * The instance of the {@link SystemUiHider} for this activity.
      */
     private SystemUiHider mSystemUiHider;
-    private ImageView mImage;
-    private ImageRenderer mImageRender;
+    //private ImageView mImage;
+    private ImageReceiver mImageReceiver;
+    private GridView mPlanBoard;
+    private VideoApdater mPlanBoardAdapter;
+    private int[] mStatics = new int[18];
+    private long[] mStartTimes = new long[18];
+    private final static String TAG = "FullscreenActivity";
     private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
-                case ImageRenderer.MSG_ON_REC_IMG:
-                    mImage.setImageBitmap((Bitmap)msg.obj);
+                case ImageReceiver.MSG_ON_REC_IMG:
+                    //mImage.setImageBitmap((Bitmap)msg.obj);
+                    if(mStatics[msg.arg1] == 0) {
+                        mStartTimes[msg.arg1] = System.currentTimeMillis();
+                    }
+                    mStatics[msg.arg1]++;
+                    if((System.currentTimeMillis() - mStartTimes[msg.arg1]) > 0) {
+                        Log.i(TAG, "pos:" + msg.arg1 + ", fps:" + mStatics[msg.arg1] / ((System.currentTimeMillis() - mStartTimes[msg.arg1]) / 1000f));
+                    }
+                    mPlanBoardAdapter.updateVideoImage(msg.arg1, (Bitmap)msg.obj);
                     break;
             }
         }
     };
 
+    private static class VideoApdater extends BaseAdapter {
+        private SparseArray<ImageView> mImageViews;
+        public VideoApdater(int videoCount) {
+            mImageViews = new SparseArray<ImageView>();
+            for(int pos = 0; pos < videoCount; ++pos) {
+                mImageViews.put(pos, null);
+            }
+        }
+        public void updateVideoImage(int position, Bitmap bitmap) {
+            ImageView video = null;
+            synchronized (mImageViews) {
+                video = (ImageView) mImageViews.get(position, null);
+            }
+            if(video != null) {
+                video.setImageBitmap(bitmap);
+            }
+        }
+        @Override
+        public int getCount() {
+            int count = 0;
+            synchronized (mImageViews) {
+                count = mImageViews.size();
+            }
+            return count;
+        }
+
+        @Override
+        public Object getItem(int position) {
+            Object obj = null;
+            synchronized (mImageViews) {
+                obj = mImageViews.get(position);
+            }
+            return obj;
+        }
+
+        @Override
+        public long getItemId(int position) {
+            return 0;
+        }
+
+        @Override
+        public View getView(int position, View convertView, ViewGroup parent) {
+            ImageView video = null;
+            if(convertView == null) {
+                LayoutInflater inflater = (LayoutInflater)parent.getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+                video = (ImageView)inflater.inflate(R.layout.video_item, parent, false);
+            } else {
+                video = (ImageView)convertView;
+            }
+            synchronized (mImageViews) {
+                mImageViews.put(position, video);
+            }
+            //video.setImageResource(R.drawable.default);
+            return video;
+        }
+    };
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_fullscreen);
-        mImage = (ImageView) findViewById(R.id.fullscreen_content);
+        //mImage = (ImageView) findViewById(R.id.fullscreen_content);
+        mPlanBoard = (GridView) findViewById(R.id.plan_board);
+        mPlanBoardAdapter = new VideoApdater(18);
+        mPlanBoard.setAdapter(mPlanBoardAdapter);
 
         final View controlsView = findViewById(R.id.fullscreen_content_controls);
-        final View contentView = findViewById(R.id.fullscreen_content);
+        final View contentView = findViewById(R.id.plan_board);
 
         // Set up an instance of SystemUiHider to control the system UI for
         // this activity.
@@ -114,6 +193,7 @@ public class FullscreenActivity extends Activity {
                 });
 
         // Set up the user interaction to manually show or hide the system UI.
+        /*
         contentView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -123,24 +203,24 @@ public class FullscreenActivity extends Activity {
                     mSystemUiHider.show();
                 }
             }
-        });
+        });*/
 
         // Upon interacting with UI controls, delay any scheduled hide()
         // operations to prevent the jarring behavior of controls going away
         // while interacting with the UI.
         findViewById(R.id.dummy_button).setOnTouchListener(mDelayHideTouchListener);
-        mImageRender = new ImageRenderer(mHandler);
+        mImageReceiver = new ImageReceiver(mHandler);
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        mImageRender.start();
+        mImageReceiver.start();
     }
     @Override
     public void onPause() {
         super.onPause();
-        mImageRender.stop();
+        mImageReceiver.stop();
     }
     @Override
     protected void onPostCreate(Bundle savedInstanceState) {
