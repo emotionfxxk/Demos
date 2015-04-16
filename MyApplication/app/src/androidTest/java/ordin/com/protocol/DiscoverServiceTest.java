@@ -16,24 +16,20 @@ import ordin.com.protocol.command.ServiceDiscoverResponse;
  * Created by sean on 4/8/15.
  */
 public class DiscoverServiceTest extends AndroidTestCase {
-    private final static String TAG = "DiscoverServiceTest";
     public void testDiscoverServiceRequest() {
         Request request = RequestFactory.createServiceDiscoverRequest("192.162.0.1", 5333);
-        String toString = request.toString();
-        assertTrue(toString.contains("192.162.0.1"));
-        assertTrue(toString.contains("5333"));
         byte[] packet = request.getDataPacket();
-        assertEquals(16, ((packet[4] & 0x000000FF) << 8) + (packet[5] & 0x000000FF));
-        assertEquals(5333, ((packet[13] & 0x000000FF)<< 8) + (packet[14] & 0x000000FF));
+        assertEquals(16, ((packet[5] & 0x000000FF) << 8) + (packet[4] & 0x000000FF));
+        assertEquals(5333, ((packet[14] & 0x000000FF)<< 8) + (packet[13] & 0x000000FF));
     }
     public void testDiscoverServiceResponse() {
         byte[] mockResponsePacket = new byte[] {
                 'O', 'd', 'i', 'n',                 // header
-                0x00, 0x10,                         // length: 16
+                0x10, 0x00,                         // length: 16
                 CommandDefs.CMD_DISCOVER_SERVICE,   // command
                 (byte)0xC0, (byte)0xA8, 0x00, 0x01, // ip address: 192.168.0.1
-                0x15, (byte)0xB4,                   // command port: 5556
-                0x15, (byte)0xB5,                   // command port: 5557
+                (byte)0xB4, 0x15,                   // command port: 5556
+                (byte)0xB5, 0x15,                   // command port: 5557
                 0x00                                // checksum
         };
         ServiceDiscoverResponse response = (ServiceDiscoverResponse)ResponseParser.parserResponse(

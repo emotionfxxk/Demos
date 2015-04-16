@@ -10,6 +10,13 @@ public abstract class Response extends Command {
         Response createInstance();
     };
 
+    public Creator sCreator;
+
+    @Override
+    public short getPayloadLength() {
+        throw new UnsupportedOperationException("Not supported");
+    }
+
     @Override
     public void fillPayload(ByteBuffer byteBuffer) {
         throw new UnsupportedOperationException("Not supported");

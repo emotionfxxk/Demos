@@ -20,7 +20,7 @@ public abstract class Command {
         // packet length: header(4) + length(2) + command(1) + payload(payload length) + checksum(1)
         short length = (short)(getPayloadLength() + 8);
         ByteBuffer bb = ByteBuffer.allocate(length);
-        //bb.order(ByteOrder.LITTLE_ENDIAN);
+        bb.order(ByteOrder.LITTLE_ENDIAN);
         // put header
         bb.put(header);
         // put length
@@ -68,9 +68,8 @@ public abstract class Command {
             if (!Arrays.equals(header, inHeader))
                 throw new InvalidParameterException("invalid header");
             // get 2 byte length
-            short length = byteBuffer.getShort();
-            if( (short)(getPayloadLength() + 8) != length)
-                throw new InvalidParameterException("invalid length");
+            byteBuffer.getShort();
+
             // get command
             command = byteBuffer.get();
 

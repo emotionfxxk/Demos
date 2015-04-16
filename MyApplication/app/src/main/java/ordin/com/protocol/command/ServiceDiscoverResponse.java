@@ -17,11 +17,6 @@ public class ServiceDiscoverResponse extends Response {
         }
     };
 
-    @Override
-    public short getPayloadLength() {
-        return 8;
-    }
-
     private ServiceDiscoverResponse() {}
 
     @Override

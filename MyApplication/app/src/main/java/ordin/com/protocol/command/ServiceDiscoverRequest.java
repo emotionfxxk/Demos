@@ -41,12 +41,4 @@ public class ServiceDiscoverRequest extends Request {
         byteBuffer.putInt(ipAddress);
         byteBuffer.putShort(port);
     }
-    @Override
-    public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("{cmd=").append(command).append(", ipAddress=").append((ipAddress >> 24) & 0xFF).append(".")
-                .append((ipAddress >> 16) & 0xFF).append(".").append((ipAddress >> 8) & 0xFF).append(".")
-                .append(ipAddress & 0xFF).append(", port=").append(port);
-        return sb.toString();
-    }
 }
