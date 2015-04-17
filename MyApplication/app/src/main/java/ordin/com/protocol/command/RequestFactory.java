@@ -54,4 +54,12 @@ public class RequestFactory {
     public static Command createPowerControlCommand(boolean powerOn, byte devId) {
         return new PowerControlCommand(powerOn, devId);
     }
+
+    public static Request createJpgRequest(byte imageType, boolean isOpenSubsequentImg, short resolutionX, short resolutionY) {
+        return new JpgRequest(imageType, isOpenSubsequentImg, resolutionX, resolutionY);
+    }
+
+    public static Request createControlBallRequest(byte direction, byte offset) {
+        return new CtrlBallRequest(direction, offset);
+    }
 }

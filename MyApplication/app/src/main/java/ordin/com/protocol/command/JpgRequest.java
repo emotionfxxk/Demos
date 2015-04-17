@@ -9,18 +9,25 @@ import java.nio.ByteBuffer;
 public class JpgRequest extends Request {
     public byte imageType;
     public byte openSubsequentImg;
-    public byte resolutionX;
-    public byte resolutionY;
+    public short resolutionX;
+    public short resolutionY;
 
-    public JpgRequest(String ipAddress, int port) {
-        throw new UnsupportedOperationException("Not supported");
+    public JpgRequest(byte imageType, boolean isOpenSubsequentImg, short resolutionX, short resolutionY) {
+        this.command = CommandDefs.CMD_GET_JPG;
+        this.imageType = imageType;
+        this.openSubsequentImg = isOpenSubsequentImg ? (byte)0x01 : (byte)0x00;
+        this.resolutionX = resolutionX;
+        this.resolutionY = resolutionY;
     }
     @Override
     public short getPayloadLength() {
-        return 8;
+        return 6;
     }
     @Override
     public void fillPayload(ByteBuffer byteBuffer) {
-        throw new UnsupportedOperationException("Not supported");
+        byteBuffer.put(imageType);
+        byteBuffer.put(openSubsequentImg);
+        byteBuffer.putShort(resolutionX);
+        byteBuffer.putShort(resolutionY);
     }
 }

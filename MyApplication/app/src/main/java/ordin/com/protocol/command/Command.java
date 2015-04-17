@@ -14,11 +14,17 @@ import java.util.IllegalFormatException;
 public abstract class Command {
     protected final static byte[] header = new byte[] {'O', 'd', 'i', 'n'};
     public byte command;
+    public short length;
     protected final static byte checkSum = 0x00;
+
+    public short getOverheadLength() {
+        //header(4) + length(2) + command(1) +  checksum(1)
+        return 8;
+    }
 
     public byte[] getDataPacket() {
         // packet length: header(4) + length(2) + command(1) + payload(payload length) + checksum(1)
-        short length = (short)(getPayloadLength() + 8);
+        short length = (short)(getPayloadLength() + getOverheadLength());
         ByteBuffer bb = ByteBuffer.allocate(length);
         bb.order(ByteOrder.LITTLE_ENDIAN);
         // put header
@@ -68,7 +74,7 @@ public abstract class Command {
             if (!Arrays.equals(header, inHeader))
                 throw new InvalidParameterException("invalid header");
             // get 2 byte length
-            byteBuffer.getShort();
+            length = byteBuffer.getShort();
 
             // get command
             command = byteBuffer.get();

@@ -34,6 +34,9 @@ public class ResponseParser {
         CREATOR_MAP.put(CommandDefs.CMD_CLOSE_WINDOW, CloseWindowCommand.sCreator);
         CREATOR_MAP.put(CommandDefs.CMD_DEV_CTRL_POWER, PowerControlCommand.sCreator);
 
+        // JPG commands
+        CREATOR_MAP.put(CommandDefs.CMD_TRANSFER_JPG, JpgResponse.sCreator);
+
     };
 
     private ResponseParser() {}

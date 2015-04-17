@@ -45,4 +45,23 @@ public final class CommandDefs {
     public final static byte CMD_FACE_DETECTION = (byte)0x80;
 
     //public final static byte CMD_TRANSFER_JPG = (byte)0x81;
+
+
+    /*
+     * image type
+     */
+    public final static byte PARAM_SIGNAL_IMAGE = 0x00;
+    public final static byte PARAM_PLAN_IMAGE = 0x01;
+
+    /*
+     * ball directions
+     */
+    public final static byte PARAM_BALL_LEFT = 0x01;
+    public final static byte PARAM_BALL_UP = 0x02;
+    public final static byte PARAM_BALL_RIGHT = 0x03;
+    public final static byte PARAM_BALL_DOWN = 0x04;
+    public final static byte PARAM_BALL_ZOOM_IN = 0x05;
+    public final static byte PARAM_BALL_ZOOM_OUT = 0x06;
+
+
 }
