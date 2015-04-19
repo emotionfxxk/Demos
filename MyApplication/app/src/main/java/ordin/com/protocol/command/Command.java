@@ -2,6 +2,8 @@ package ordin.com.protocol.command;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -94,6 +96,7 @@ public abstract class Command {
     }
     public abstract void parsePayload(ByteBuffer byteBuffer);
 
+    // for tcp connection
     public static ByteBuffer readOneCommand(InputStream is) throws IOException {
         // read header and length first
         byte[] headerAndLength = new byte[6];
@@ -109,6 +112,26 @@ public abstract class Command {
         System.arraycopy(headerAndLength, 0, commandPacket, 0, 6);
 
         is.read(commandPacket, 6, (length - 6));
+        return ByteBuffer.wrap(commandPacket);
+    }
+
+    // for udp connection
+    public static ByteBuffer readOneCommand(DatagramSocket socket) throws IOException {
+        byte[] headerAndLength = new byte[6];
+        DatagramPacket packet = new DatagramPacket(headerAndLength, headerAndLength.length);
+        socket.receive(packet);
+
+        ByteBuffer bb = ByteBuffer.wrap(headerAndLength);
+        bb.order(ByteOrder.LITTLE_ENDIAN);
+
+        bb.get(new byte[4]); // skip header
+        short length = bb.getShort();
+
+        byte[] commandPacket = new byte[length];
+        System.arraycopy(headerAndLength, 0, commandPacket, 0, 6);
+
+        packet = new DatagramPacket(commandPacket, 6, (length - 6));
+        socket.receive(packet);
         return ByteBuffer.wrap(commandPacket);
     }
 }

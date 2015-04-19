@@ -41,6 +41,10 @@ public class ControlConnection extends BaseConnection {
     }
     @Override
     public void sendCommand(Command cmd) {
+        if(!started) {
+            Log.i(TAG, "connection not started, drop command!");
+            return;
+        }
         synchronized (commandsQueue) {
             commandsQueue.offer(cmd);
         }
@@ -110,6 +114,7 @@ public class ControlConnection extends BaseConnection {
                 }
             } catch (Exception e) {
                 e.printStackTrace();
+                ControlConnection.this.stop();
             }
         }
     }
