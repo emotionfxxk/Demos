@@ -1,4 +1,4 @@
-package ordin.com.protocol;
+package ordin.com.protocol.connection;
 
 /**
  * Created by sean on 4/8/15.
