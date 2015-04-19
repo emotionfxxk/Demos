@@ -1,28 +1,18 @@
 package ordin.com.protocol.connection;
 
 import android.content.Context;
-import android.os.*;
-import android.support.annotation.NonNull;
 import android.util.Log;
 
 import java.lang.ref.WeakReference;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
-import java.nio.DoubleBuffer;
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
-import java.nio.LongBuffer;
-import java.nio.ShortBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
 import ordin.com.protocol.command.Request;
 import ordin.com.protocol.command.RequestFactory;
-import ordin.com.protocol.command.Response;
 import ordin.com.protocol.command.ResponseParser;
 import ordin.com.protocol.command.ServiceDiscoverResponse;
 
@@ -78,9 +68,6 @@ public class ServiceDiscoverer extends IState {
             return;
         }
         ipAddress = Utils.getLocalIpAddress(ctx);
-        // start receive broadcast thread
-        recThread = new ReceiveBroadcastThread(this, socket);
-        sendThread.start();
 
         // start send broadcast thread
         sendThread = new SendBroadcastThread(this, socket);
@@ -106,6 +93,11 @@ public class ServiceDiscoverer extends IState {
         }
     }
 
+    private void startRecThread() {
+        // start receive broadcast thread
+        recThread = new ReceiveBroadcastThread(this, socket);
+        sendThread.start();
+    }
     private void onNotifyDiscoveryFailed() {
         synchronized (this) {
             started = false;
@@ -189,8 +181,14 @@ public class ServiceDiscoverer extends IState {
             android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
             try {
                 socket.connect(InetAddress.getByName(Configure.BROADCAST_ADDRESS), Configure.BROADCAST_PORT);
+
+                // start receive broadcast thread
+                if (dicoverer.get() != null) {
+                    dicoverer.get().startRecThread();
+                }
+
                 // send packet for 2 times;
-                Request req = RequestFactory.createServiceDiscoverRequest(ipAddress, Configure.BROADCAST_REC_PORT);
+                Request req = RequestFactory.createServiceDiscoverRequest(ipAddress, Configure.BROADCAST_PORT);
                 final DatagramPacket packet = new DatagramPacket(req.getDataPacket(),  req.getDataPacket().length);
                 socket.send(packet);
                 Thread.sleep(500);

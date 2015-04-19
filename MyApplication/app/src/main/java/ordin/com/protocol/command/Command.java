@@ -1,5 +1,7 @@
 package ordin.com.protocol.command;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -91,4 +93,22 @@ public abstract class Command {
         }
     }
     public abstract void parsePayload(ByteBuffer byteBuffer);
+
+    public static ByteBuffer readOneCommand(InputStream is) throws IOException {
+        // read header and length first
+        byte[] headerAndLength = new byte[6];
+        is.read(headerAndLength);
+
+        ByteBuffer bb = ByteBuffer.wrap(headerAndLength);
+        bb.order(ByteOrder.LITTLE_ENDIAN);
+
+        bb.get(new byte[4]); // skip header
+        short length = bb.getShort();
+
+        byte[] commandPacket = new byte[length];
+        System.arraycopy(headerAndLength, 0, commandPacket, 0, 6);
+
+        is.read(commandPacket, 6, (length - 6));
+        return ByteBuffer.wrap(commandPacket);
+    }
 }
