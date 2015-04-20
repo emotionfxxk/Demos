@@ -8,5 +8,7 @@ public class Configure {
 
     // broadcast address and port
     public static String BROADCAST_ADDRESS = "255.255.255.255";
-    public static int BROADCAST_PORT = 1700;
+    public static int BROADCAST_DEST_PORT = 1700;
+    public static int JPG_PORT = 1702;
+
 }

@@ -3,7 +3,6 @@ package ordin.com.protocol.connection;
 import android.content.Context;
 import android.util.Log;
 
-import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -39,12 +38,15 @@ public class ConnectionManager {
     private ServiceDiscoverer.Observer discoveryObserver = new ServiceDiscoverer.Observer() {
         @Override
         public void onDiscoveryFailed() {
+            Log.i(TAG, "onDiscoveryFailed");
         }
         @Override
         public void onDiscoveryStarted() {
+            Log.i(TAG, "onDiscoveryStarted");
         }
         @Override
         public void onDiscoveryService(String ipAddress, int commandPort, int jpgPort) {
+            Log.i(TAG, "onDiscoveryService ipAddress:" + ipAddress + ", cmd port:" + commandPort + ", jpgPort:" + jpgPort);
             onGetServiceInfo(ipAddress, commandPort, jpgPort);
             // create control connection(TCP)
             try {
@@ -55,8 +57,11 @@ public class ConnectionManager {
                     onGetConnection.onGetControlConnection(controlConnection);
                 }
 
-                DatagramSocket jpgSocket = new DatagramSocket(jpgPort, InetAddress.getByName(ipAddress));
+                DatagramSocket jpgSocket = new DatagramSocket(jpgPort);
+                jpgSocket.setReceiveBufferSize(64 * 1024);
+                Log.i(TAG, "jpgSocket.getReceiveBufferSize()=" + jpgSocket.getReceiveBufferSize());
                 jpgConnection = new JpgConnection(jpgSocket);
+
                 jpgConnection.start();
                 if(onGetConnection != null) {
                     onGetConnection.onGetJpgConnection(jpgConnection);
@@ -69,6 +74,7 @@ public class ConnectionManager {
         }
         @Override
         public void onDiscoveryFinished() {
+            Log.i(TAG, "onDiscoveryFinished");
         }
     };
 

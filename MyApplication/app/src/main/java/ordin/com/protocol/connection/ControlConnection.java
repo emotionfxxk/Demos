@@ -48,7 +48,9 @@ public class ControlConnection extends BaseConnection {
         synchronized (commandsQueue) {
             commandsQueue.offer(cmd);
         }
-        queueLock.notifyAll();
+        synchronized (queueLock) {
+            queueLock.notifyAll();
+        }
     }
 
     @Override
@@ -75,11 +77,16 @@ public class ControlConnection extends BaseConnection {
                 while(started) {
                     synchronized (commandsQueue) {
                         cmd = commandsQueue.poll();
+                        //Log.i(TAG, "poll command:" + cmd);
                     }
                     if(cmd == null) {
-                        queueLock.wait(100);
+                        synchronized (queueLock) {
+                            queueLock.wait(100);
+                        }
                     } else {
-                        outputStream.write(cmd.getDataPacket());
+                        byte[] data = cmd.getDataPacket();
+                        outputStream.write(data);
+                        outputStream.flush();
                         // notify
                         synchronized (listeners) {
                             for(CommandListener l : listeners) {
@@ -90,6 +97,7 @@ public class ControlConnection extends BaseConnection {
                 }
             } catch (Exception e) {
                 e.printStackTrace();
+                Log.i(TAG, "WriterThread exception:" + e.getMessage());
                 ControlConnection.this.stop();
             }
         }
@@ -114,6 +122,7 @@ public class ControlConnection extends BaseConnection {
                 }
             } catch (Exception e) {
                 e.printStackTrace();
+                Log.i(TAG, "reader thread exception:" + e.getMessage());
                 ControlConnection.this.stop();
             }
         }

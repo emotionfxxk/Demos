@@ -1,5 +1,7 @@
 package ordin.com.protocol.command;
 
+import android.util.Log;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.DatagramPacket;
@@ -16,6 +18,8 @@ import java.util.IllegalFormatException;
  * Created by sean on 4/8/15.
  */
 public abstract class Command {
+    private final static String TAG = "Command";
+    private final static int BUF_SIZE = 1024 * 2;
     protected final static byte[] header = new byte[] {'O', 'd', 'i', 'n'};
     public byte command;
     public short length;
@@ -117,21 +121,21 @@ public abstract class Command {
 
     // for udp connection
     public static ByteBuffer readOneCommand(DatagramSocket socket) throws IOException {
-        byte[] headerAndLength = new byte[6];
-        DatagramPacket packet = new DatagramPacket(headerAndLength, headerAndLength.length);
-        socket.receive(packet);
+        while(true) {
+            byte[] datagram = new byte[BUF_SIZE];
+            DatagramPacket packet = new DatagramPacket(datagram, datagram.length);
+            socket.receive(packet);
 
-        ByteBuffer bb = ByteBuffer.wrap(headerAndLength);
-        bb.order(ByteOrder.LITTLE_ENDIAN);
+            ByteBuffer bb = ByteBuffer.wrap(datagram);
+            bb.order(ByteOrder.LITTLE_ENDIAN);
 
-        bb.get(new byte[4]); // skip header
-        short length = bb.getShort();
-
-        byte[] commandPacket = new byte[length];
-        System.arraycopy(headerAndLength, 0, commandPacket, 0, 6);
-
-        packet = new DatagramPacket(commandPacket, 6, (length - 6));
-        socket.receive(packet);
-        return ByteBuffer.wrap(commandPacket);
+            bb.get(new byte[4]); // skip header
+            short length = bb.getShort();
+            if(length == 0) {
+                Log.i(TAG, "redundant package :packet.getLength():" + packet.getLength() + ", length in pack:" + length);
+            } else {
+                return ByteBuffer.wrap(datagram);
+            }
+        }
     }
 }

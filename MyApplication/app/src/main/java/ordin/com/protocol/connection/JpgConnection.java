@@ -2,7 +2,6 @@ package ordin.com.protocol.connection;
 
 import android.util.Log;
 
-import java.io.InputStream;
 import java.net.DatagramSocket;
 import java.nio.ByteBuffer;
 
