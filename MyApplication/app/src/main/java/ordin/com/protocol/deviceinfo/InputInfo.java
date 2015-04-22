@@ -9,4 +9,12 @@ public class InputInfo {
     public int inputType;           // not for mobile client
     public String inputName;
     public String inputOverlapInfo;
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("inputIndex:").append(inputIndex).append(", inputName:").append(inputName)
+                .append(", inputOverlapInfo:").append(inputOverlapInfo);
+        return sb.toString();
+    }
 }

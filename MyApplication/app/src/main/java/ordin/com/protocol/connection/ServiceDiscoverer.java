@@ -72,9 +72,8 @@ public class ServiceDiscoverer extends IState {
         ipAddress = Utils.getLocalIpAddress(ctx);
         Log.i(TAG, "ipAddress:" + ipAddress + ", local port:" + socket.getLocalPort());
 
-        // start send broadcast thread
-        sendThread = new SendBroadcastThread(this, socket);
-        sendThread.start();
+        // start rec broadcast thread
+        startRecThread();
     }
 
     @Override
@@ -96,10 +95,15 @@ public class ServiceDiscoverer extends IState {
         }
     }
 
-    private void startRecThread() {
+    protected void startRecThread() {
         // start receive broadcast thread
         recThread = new ReceiveBroadcastThread(this, socket);
         recThread.start();
+    }
+    protected void startSendThread() {
+        // start send broadcast thread
+        sendThread = new SendBroadcastThread(this, socket);
+        sendThread.start();
     }
     private void onNotifyDiscoveryFailed() {
         synchronized (this) {
@@ -146,9 +150,11 @@ public class ServiceDiscoverer extends IState {
         @Override
         public void run() {
             android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
+            if (dicoverer.get() != null) {
+                dicoverer.get().startSendThread();
+            }
             try {
                 Log.i(TAG, "before receive bc!");
-                //ByteBuffer bb = Command.readOneCommand(socket);
                 byte[] headerAndLength = new byte[16];
                 DatagramPacket packet = new DatagramPacket(headerAndLength, headerAndLength.length);
                 socket.receive(packet);
@@ -191,15 +197,14 @@ public class ServiceDiscoverer extends IState {
         public void run() {
             android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
             try {
-                // start receive broadcast thread
-                if (dicoverer.get() != null) {
-                    dicoverer.get().startRecThread();
-                }
                 // send packet
                 Request req = RequestFactory.createServiceDiscoverRequest(ipAddress, Configure.JPG_PORT);
                 final DatagramPacket packet = new DatagramPacket(req.getDataPacket(), 0, req.getDataPacket().length,
                         InetAddress.getByName(Configure.BROADCAST_ADDRESS), Configure.BROADCAST_DEST_PORT);
+                Thread.sleep(50);
+                Log.i(TAG, "before send search req");
                 socket.send(packet);
+                Log.i(TAG, "after send search req");
             } catch (Exception e) {
                 e.printStackTrace();
                 Log.w(TAG, e.getMessage());

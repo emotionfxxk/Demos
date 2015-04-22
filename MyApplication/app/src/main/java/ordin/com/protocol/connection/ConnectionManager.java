@@ -1,6 +1,7 @@
 package ordin.com.protocol.connection;
 
 import android.content.Context;
+import android.os.Handler;
 import android.util.Log;
 
 import java.net.DatagramSocket;
@@ -11,24 +12,21 @@ import java.net.Socket;
  * Created by sean on 4/17/15.
  */
 public class ConnectionManager {
+    public final static int MSG_ON_GET_CONTROL_CONNECTION = 0;
+    public final static int MSG_ON_GET_JPG_CONNECTION = 1;
+
     private final static String TAG = "ConnectionManager";
     public static ConnectionManager defaultManager = new ConnectionManager();
     private ConnectionManager() {}
 
-    public interface OnGetConnection {
-        void onGetControlConnection(ControlConnection con);
-        void onGetJpgConnection(JpgConnection con);
-    }
     String serviceIpAddress;
     int commandPort, jpgPort;
-    OnGetConnection onGetConnection;
 
     ControlConnection controlConnection;
     JpgConnection jpgConnection;
 
-    public void setOnGetConnection(OnGetConnection onGetConnection) {
-        this.onGetConnection = onGetConnection;
-    }
+    Handler handler;
+
     private void onGetServiceInfo(String ipAddress, int commandPort, int jpgPort) {
         this.serviceIpAddress = ipAddress;
         this.commandPort = commandPort;
@@ -53,18 +51,15 @@ public class ConnectionManager {
                 Socket ctrlSocket = new Socket(InetAddress.getByName(ipAddress), commandPort);
                 controlConnection = new ControlConnection(ctrlSocket);
                 controlConnection.start();
-                if(onGetConnection != null) {
-                    onGetConnection.onGetControlConnection(controlConnection);
+                if(handler != null) {
+                    handler.sendMessage(handler.obtainMessage(MSG_ON_GET_CONTROL_CONNECTION, controlConnection));
                 }
 
                 DatagramSocket jpgSocket = new DatagramSocket(jpgPort);
-                jpgSocket.setReceiveBufferSize(64 * 1024);
-                Log.i(TAG, "jpgSocket.getReceiveBufferSize()=" + jpgSocket.getReceiveBufferSize());
                 jpgConnection = new JpgConnection(jpgSocket);
-
                 jpgConnection.start();
-                if(onGetConnection != null) {
-                    onGetConnection.onGetJpgConnection(jpgConnection);
+                if(handler != null) {
+                    handler.sendMessage(handler.obtainMessage(MSG_ON_GET_JPG_CONNECTION, jpgConnection));
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -77,6 +72,28 @@ public class ConnectionManager {
             Log.i(TAG, "onDiscoveryFinished");
         }
     };
+
+    public void getControlConnection(Handler handler, Context ctx) {
+        this.handler = handler;
+        if(controlConnection != null) {
+            if(handler != null) {
+                handler.sendMessage(handler.obtainMessage(MSG_ON_GET_CONTROL_CONNECTION, controlConnection));
+            }
+        } else {
+            startDiscovery(ctx);
+        }
+    }
+
+    public void getJpgConnection(Handler handler, Context ctx) {
+        this.handler = handler;
+        if(jpgConnection != null) {
+            if(handler != null) {
+                handler.sendMessage(handler.obtainMessage(MSG_ON_GET_JPG_CONNECTION, jpgConnection));
+            }
+        } else {
+            startDiscovery(ctx);
+        }
+    }
 
     public void startDiscovery(Context ctx) {
         ServiceDiscoverer.defaultDiscoverer.addObserver(discoveryObserver);

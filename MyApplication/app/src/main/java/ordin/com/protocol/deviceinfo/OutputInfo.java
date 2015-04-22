@@ -11,4 +11,13 @@ public class OutputInfo {
     public int outputResolution;
     public int boardAddress;
     public boolean isInPoll;
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("outputIndex:").append(outputIndex).append(" outputPortIndex:").append(outputPortIndex)
+                .append(" outputResolution:").append(outputResolution).append(" boardAddress:").append(boardAddress)
+                .append(", isInPoll:").append(isInPoll);
+        return sb.toString();
+    }
 }
