@@ -34,10 +34,8 @@ public class OrdinProtocalTest extends ActionBarActivity {
     private Handler.Callback callback = new Handler.Callback() {
         @Override
         public boolean handleMessage(Message msg) {
-            if(msg.what == ConnectionManager.MSG_ON_GET_CONTROL_CONNECTION) {
-                onGetControlConnection((ControlConnection)msg.obj);
-            } else if(msg.what == ConnectionManager.MSG_ON_GET_JPG_CONNECTION) {
-                onGetJpgConnection((JpgConnection)msg.obj);
+            if(msg.what == ConnectionManager.MSG_ON_CTRL_CON_CONNECTED) {
+                onGetControlConnection();
             }
             return true;
         }
@@ -47,12 +45,12 @@ public class OrdinProtocalTest extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ordin_protocal_test);
         handler = new Handler(callback);
-        ConnectionManager.defaultManager.getControlConnection(handler, this);
-        ConnectionManager.defaultManager.getJpgConnection(handler, this);
+        ConnectionManager.defaultManager.connect(handler, this);
     }
 
-    private void onGetControlConnection(ControlConnection con) {
+    private void onGetControlConnection() {
         Log.i(TAG, "onGetControlConnection");
+        ControlConnection con = ConnectionManager.defaultManager.getControlConnection();
         con.addCommandListener(commandListener);
 
         { // test get window structure
@@ -92,10 +90,7 @@ public class OrdinProtocalTest extends ActionBarActivity {
         }*/
     }
 
-    private void onGetJpgConnection(JpgConnection con) {
-        Log.i(TAG, "onGetJpgConnection");
-        //con.addCommandListener(commandListener);
-    }
+
 
     CommandListener commandListener = new CommandListener() {
         @Override
@@ -121,9 +116,6 @@ public class OrdinProtocalTest extends ActionBarActivity {
                 for (ScreenGroup sg : r.screenGroups) {
                     Log.i(TAG, "get plan window list sg:" + sg);
                 }
-            } else if(cmd instanceof JpgResponse) {
-                JpgResponse r = (JpgResponse) cmd;
-                Log.i(TAG, "total pkg:" + r.totalCount + ", index:" + r.index + ", data:" + r.imageData.length);
             } else if(cmd instanceof GetInputInfoResponse) {
                 GetInputInfoResponse r = (GetInputInfoResponse) cmd;
                 for (InputInfo ii : r.inputInfos) {
