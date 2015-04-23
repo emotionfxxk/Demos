@@ -4,6 +4,7 @@ import android.util.Log;
 
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.util.ArrayDeque;
@@ -22,13 +23,18 @@ public class ControlConnection extends BaseConnection {
     ArrayDeque<Command> commandsQueue = new ArrayDeque<Command>();
     Object queueLock = new Object();
 
-    public ControlConnection(Socket socket) {
-        this.socket = socket;
+    String ipAddress;
+    int port;
+
+    public ControlConnection(String ipAddress, int commandPort) {
+        this.ipAddress = ipAddress;
+        this.port = commandPort;
     }
 
     private void release() {
         readerThread = null;
         writerThread = null;
+        commandsQueue.clear();
         try {
             if (socket != null) {
                 socket.close();
@@ -55,15 +61,23 @@ public class ControlConnection extends BaseConnection {
 
     @Override
     public void onStart() {
+        synchronized (stateListeners) {
+            for(ConnectionStateListener l : stateListeners) {
+                l.onConnecting(this);
+            }
+        }
         readerThread = new ReaderThread();
         readerThread.start();
-        writerThread = new WriterThread();
-        writerThread.start();
     }
 
     @Override
     public void onStop() {
         release();
+        synchronized (stateListeners) {
+            for(ConnectionStateListener l : stateListeners) {
+                l.onDisconnected(this);
+            }
+        }
     }
 
     private final class WriterThread extends Thread {
@@ -77,7 +91,6 @@ public class ControlConnection extends BaseConnection {
                 while(started) {
                     synchronized (commandsQueue) {
                         cmd = commandsQueue.poll();
-                        //Log.i(TAG, "poll command:" + cmd);
                     }
                     if(cmd == null) {
                         synchronized (queueLock) {
@@ -88,8 +101,8 @@ public class ControlConnection extends BaseConnection {
                         outputStream.write(data);
                         outputStream.flush();
                         // notify
-                        synchronized (listeners) {
-                            for(CommandListener l : listeners) {
+                        synchronized (cmdListeners) {
+                            for(CommandListener l : cmdListeners) {
                                 l.onSentCommand(cmd);
                             }
                         }
@@ -109,13 +122,22 @@ public class ControlConnection extends BaseConnection {
         public void run() {
             android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
             try {
+                Log.i(TAG, "Reader thread started, try connect to " + ipAddress + ":" + port);
+                socket = new Socket(InetAddress.getByName(ipAddress), port);
+                Log.i(TAG, "connected to " + ipAddress + ":" + port);
+                synchronized (stateListeners) {
+                    for(ConnectionStateListener l : stateListeners) {
+                        l.onConnected(ControlConnection.this);
+                    }
+                }
+                writerThread = new WriterThread();
+                writerThread.start();
                 inputStream = socket.getInputStream();
                 while(started) {
-                    // Read data here;
                     ByteBuffer bb = Command.readOneCommand(inputStream);
                     Command cmd = ResponseParser.parserResponse(bb);
-                    synchronized (listeners) {
-                        for(CommandListener l : listeners) {
+                    synchronized (cmdListeners) {
+                        for(CommandListener l : cmdListeners) {
                             l.onReceivedCommand(cmd);
                         }
                     }

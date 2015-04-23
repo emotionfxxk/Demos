@@ -1,9 +1,12 @@
 package ordin.com.protocol.connection;
 
+import java.util.ArrayList;
+
 /**
  * Created by sean on 4/17/15.
  */
 public abstract class IState {
+
     protected boolean started = false;
     public synchronized void start() {
         if(started) return;

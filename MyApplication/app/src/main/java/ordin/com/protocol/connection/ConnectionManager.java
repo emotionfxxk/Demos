@@ -4,10 +4,6 @@ import android.content.Context;
 import android.os.Handler;
 import android.util.Log;
 
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.Socket;
-
 import ordin.com.protocol.image.ImageProcessor;
 import ordin.com.protocol.image.ImageUpdater;
 
@@ -46,6 +42,37 @@ public class ConnectionManager {
         this.jpgPort = jpgPort;
     }
 
+    private ConnectionStateListener connectionStateListener = new ConnectionStateListener() {
+        @Override
+        public void onConnecting(IConnection con) {
+            // TODO: notify
+            if(con == jpgConnection) {
+                imageProcessor.start();
+                jpgConnection.addCommandListener(imageProcessor);
+            }
+        }
+
+        @Override
+        public void onConnected(IConnection con) {
+            // TODO: notify
+        }
+
+        @Override
+        public void onDisconnected(IConnection con) {
+            if(con == controlConnection) {
+                controlConnection.removeStateListener(connectionStateListener);
+                controlConnection = null;
+                // TODO: Notify the disconnection
+            } else if(con == jpgConnection) {
+                jpgConnection.removeStateListener(connectionStateListener);
+                jpgConnection.removeCommandListener(imageProcessor);
+                imageProcessor.stop();
+                jpgConnection = null;
+                // TODO: Notify the disconnection
+            }
+        }
+    };
+
     private ServiceDiscoverer.Observer discoveryObserver = new ServiceDiscoverer.Observer() {
         @Override
         public void onDiscoveryFailed() {
@@ -59,29 +86,26 @@ public class ConnectionManager {
         public void onDiscoveryService(String ipAddress, int commandPort, int jpgPort) {
             Log.i(TAG, "onDiscoveryService ipAddress:" + ipAddress + ", cmd port:" + commandPort + ", jpgPort:" + jpgPort);
             onGetServiceInfo(ipAddress, commandPort, jpgPort);
-            // create control connection(TCP)
-            try {
-                Socket ctrlSocket = new Socket(InetAddress.getByName(ipAddress), commandPort);
-                controlConnection = new ControlConnection(ctrlSocket);
+
+            if(controlConnection == null) {
+                controlConnection = new ControlConnection(ipAddress, commandPort);
+                controlConnection.addStateListener(connectionStateListener);
                 controlConnection.start();
-                if(handler != null) {
+                if (handler != null) {
                     handler.sendMessage(handler.obtainMessage(MSG_ON_GET_CONTROL_CONNECTION, controlConnection));
                 }
-
-                DatagramSocket jpgSocket = new DatagramSocket(jpgPort);
-                jpgConnection = new JpgConnection(jpgSocket);
-                jpgConnection.start();
-                jpgConnection.addCommandListener(imageProcessor);
-                imageProcessor.start();
-                if(handler != null) {
-                    handler.sendMessage(handler.obtainMessage(MSG_ON_GET_JPG_CONNECTION, jpgConnection));
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-                Log.w(TAG, e.toString());
             }
 
+            if(jpgConnection == null) {
+                jpgConnection = new JpgConnection(jpgPort);
+                jpgConnection.addStateListener(connectionStateListener);
+                jpgConnection.start();
+                if (handler != null) {
+                    handler.sendMessage(handler.obtainMessage(MSG_ON_GET_JPG_CONNECTION, jpgConnection));
+                }
+            }
         }
+
         @Override
         public void onDiscoveryFinished() {
             Log.i(TAG, "onDiscoveryFinished");

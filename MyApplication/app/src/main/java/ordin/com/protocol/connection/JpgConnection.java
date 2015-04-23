@@ -15,11 +15,14 @@ public class JpgConnection extends BaseConnection {
     private final static String TAG = "JpgConnection";
     DatagramSocket socket;
     ReaderThread readerThread;
-    public JpgConnection(DatagramSocket socket) {
-        this.socket = socket;
+    int port;
+
+    public JpgConnection(int port) {
+        this.port = port;
     }
 
     private void release() {
+        readerThread = null;
         try {
             if (socket != null) {
                 socket.close();
@@ -36,6 +39,11 @@ public class JpgConnection extends BaseConnection {
 
     @Override
     public void onStart() {
+        synchronized (stateListeners) {
+            for(ConnectionStateListener l : stateListeners) {
+                l.onConnecting(this);
+            }
+        }
         readerThread = new ReaderThread();
         readerThread.start();
     }
@@ -43,6 +51,11 @@ public class JpgConnection extends BaseConnection {
     @Override
     public void onStop() {
         release();
+        synchronized (stateListeners) {
+            for(ConnectionStateListener l : stateListeners) {
+                l.onDisconnected(this);
+            }
+        }
     }
 
     private final class ReaderThread extends Thread {
@@ -50,18 +63,27 @@ public class JpgConnection extends BaseConnection {
         public void run() {
             android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
             try {
+                Log.i(TAG, "Reader thread try to bind local port:" + port);
+                socket = new DatagramSocket(port);
+                Log.i(TAG, "bind to port:" + port);
+                synchronized (stateListeners) {
+                    for(ConnectionStateListener l : stateListeners) {
+                        l.onConnected(JpgConnection.this);
+                    }
+                }
                 while(started) {
                     // Read data packet here;
                     ByteBuffer bb = Command.readOneCommand(socket);
                     Command cmd = ResponseParser.parserResponse(bb);
-                    synchronized (listeners) {
-                        for(CommandListener l : listeners) {
+                    synchronized (cmdListeners) {
+                        for(CommandListener l : cmdListeners) {
                             l.onReceivedCommand(cmd);
                         }
                     }
                 }
             } catch (Exception e) {
                 e.printStackTrace();
+                Log.e(TAG, "exception raised in reader thread:" + e.getMessage());
                 JpgConnection.this.stop();
             }
         }
