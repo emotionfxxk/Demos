@@ -8,6 +8,9 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.Socket;
 
+import ordin.com.protocol.image.ImageProcessor;
+import ordin.com.protocol.image.ImageUpdater;
+
 /**
  * Created by sean on 4/17/15.
  */
@@ -17,13 +20,23 @@ public class ConnectionManager {
 
     private final static String TAG = "ConnectionManager";
     public static ConnectionManager defaultManager = new ConnectionManager();
-    private ConnectionManager() {}
+    private ConnectionManager() {
+        imageProcessor = new ImageProcessor();
+        imageUpdater = new ImageUpdater();
+        imageProcessor.setUpdaterHandler(imageUpdater.handler);
+    }
 
     String serviceIpAddress;
     int commandPort, jpgPort;
 
     ControlConnection controlConnection;
+
+    /*
+     * jpgConnection --(JpgResponse)--> ImageProcessor --(ImagePacket, repack and decode)--> ImageUpdater
+     */
     JpgConnection jpgConnection;
+    ImageProcessor imageProcessor;
+    ImageUpdater imageUpdater;
 
     Handler handler;
 
@@ -58,6 +71,8 @@ public class ConnectionManager {
                 DatagramSocket jpgSocket = new DatagramSocket(jpgPort);
                 jpgConnection = new JpgConnection(jpgSocket);
                 jpgConnection.start();
+                jpgConnection.addCommandListener(imageProcessor);
+                imageProcessor.start();
                 if(handler != null) {
                     handler.sendMessage(handler.obtainMessage(MSG_ON_GET_JPG_CONNECTION, jpgConnection));
                 }
@@ -72,6 +87,10 @@ public class ConnectionManager {
             Log.i(TAG, "onDiscoveryFinished");
         }
     };
+
+    public ImageUpdater getImageUpdater() {
+        return imageUpdater;
+    }
 
     public void getControlConnection(Handler handler, Context ctx) {
         this.handler = handler;
