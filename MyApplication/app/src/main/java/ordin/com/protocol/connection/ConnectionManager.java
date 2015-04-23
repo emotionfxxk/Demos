@@ -162,10 +162,12 @@ public class ConnectionManager {
         cancelDiscovery();
         if(controlConnection != null) {
             controlConnection.stop();
+            controlConnection.removeStateListener(connectionStateListener);
             controlConnection = null;
         }
         if(jpgConnection != null) {
             jpgConnection.stop();
+            jpgConnection.removeStateListener(connectionStateListener);
             jpgConnection = null;
         }
     }
