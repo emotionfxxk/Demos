@@ -76,6 +76,7 @@ public abstract class Command {
     public void parse(ByteBuffer byteBuffer) {
         if(byteBuffer == null) throw new InvalidParameterException("byteBuffer should not be null");
         try {
+            int totalLength = byteBuffer.remaining();
             // get header
             byte[] inHeader = new byte[4];
             byteBuffer.get(inHeader);
@@ -87,7 +88,9 @@ public abstract class Command {
             // get command
             command = byteBuffer.get();
 
-            parsePayload(byteBuffer);
+            // parse payload beside command byte(total - 4byte header - 2 byte length - 1 byte cmd
+            // - 1 byte checksum)
+            parsePayload(byteBuffer, totalLength - 8);
 
             // get checksum
             byte inCheckSum = byteBuffer.get();
@@ -98,7 +101,7 @@ public abstract class Command {
             throw new InvalidParameterException(e.getMessage());
         }
     }
-    public abstract void parsePayload(ByteBuffer byteBuffer);
+    public abstract void parsePayload(ByteBuffer byteBuffer, int payloadLength);
 
     // for tcp connection
     public static ByteBuffer readOneCommand(InputStream is) throws IOException {

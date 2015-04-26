@@ -53,7 +53,7 @@ public class MoveWindowCommand extends Response {
     }
 
     @Override
-    public void parsePayload(ByteBuffer byteBuffer) {
+    public void parsePayload(ByteBuffer byteBuffer, int payloadLength) {
         this.windowId = byteBuffer.getShort();
         this.userZOrder = byteBuffer.getShort();
         this.left = byteBuffer.getShort();

@@ -10,7 +10,9 @@ import java.nio.ByteBuffer;
 import java.util.ArrayDeque;
 
 import ordin.com.protocol.command.Command;
+import ordin.com.protocol.command.Response;
 import ordin.com.protocol.command.ResponseParser;
+import ordin.com.protocol.command.ResponseRepacker;
 
 /**
  * Created by sean on 4/8/15.
@@ -135,10 +137,12 @@ public class ControlConnection extends BaseConnection {
                 inputStream = socket.getInputStream();
                 while(started) {
                     ByteBuffer bb = Command.readOneCommand(inputStream);
-                    Command cmd = ResponseParser.parserResponse(bb);
-                    synchronized (cmdListeners) {
-                        for(CommandListener l : cmdListeners) {
-                            l.onReceivedCommand(cmd);
+                    Response response = ResponseRepacker.defaultRepacker.repack(ResponseParser.parserResponse(bb));
+                    if(response != null) {
+                        synchronized (cmdListeners) {
+                            for (CommandListener l : cmdListeners) {
+                                l.onReceivedCommand(response);
+                            }
                         }
                     }
                 }

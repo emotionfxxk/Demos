@@ -22,7 +22,7 @@ public class JpgResponse extends Response {
     private JpgResponse() {}
 
     @Override
-    public void parsePayload(ByteBuffer byteBuffer) {
+    public void parsePayload(ByteBuffer byteBuffer, int payloadLength) {
         // get image type
         imageType = byteBuffer.get();
         planIndex = (byteBuffer.get() & 0x000000FF);

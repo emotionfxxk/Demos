@@ -2,6 +2,9 @@ package ordin.com.protocol.command;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.List;
 
 import ordin.com.protocol.deviceinfo.OutputInfo;
 import ordin.com.protocol.deviceinfo.PlanInfo;
@@ -14,7 +17,7 @@ public class GetPlanListResponse extends Response {
     public int totalCount;
     public int index;
     public int planCount;
-    public PlanInfo[] planInfos;
+    public List<PlanInfo> planInfos;
 
     private GetPlanListResponse() {}
 
@@ -24,15 +27,36 @@ public class GetPlanListResponse extends Response {
             return new GetPlanListResponse();
         }
     };
+    public static Repacker sRepacker = new Repacker() {
+        @Override
+        public Response repack(List<Response> subResponses) {
+            GetPlanListResponse firstResponse = (GetPlanListResponse)subResponses.get(0);
+            if(firstResponse.totalCount > subResponses.size()) return null;
+
+            List<PlanInfo> planInfos = new ArrayList<PlanInfo>();
+            for(Response r : subResponses) {
+                GetPlanListResponse sr = (GetPlanListResponse) r;
+                planInfos.addAll(sr.planInfos);
+            }
+            firstResponse.planInfos = planInfos;
+            return firstResponse;
+        }
+        @Override
+        public boolean needRepack(Response response) {
+            return (response instanceof GetPlanListResponse) && (((GetPlanListResponse)response).totalCount > 1);
+        }
+    };
 
     @Override
-    public void parsePayload(ByteBuffer byteBuffer) {
+    public void parsePayload(ByteBuffer byteBuffer, int payloadLength) {
         isChanged = (byteBuffer.get() == 0x01);
         totalCount = byteBuffer.get();
         index = byteBuffer.get();
         planCount = byteBuffer.get();
-        planInfos = new PlanInfo[planCount];
-        for(int planIndex = 0; planIndex < planCount; ++planIndex) {
+        planInfos = new ArrayList<PlanInfo>();
+        int planInfosLength = payloadLength - 4;
+
+        while (planInfosLength > 0) {
             PlanInfo planInfo = new PlanInfo();
             //load info
             planInfo.index = byteBuffer.get();
@@ -40,8 +64,8 @@ public class GetPlanListResponse extends Response {
             byte[] nameByte = new byte[planNameLength];
             byteBuffer.get(nameByte);
             planInfo.planName = new String(nameByte, Charset.forName("UTF-8"));
-
-            planInfos[planIndex] = planInfo;
+            planInfosLength -= (2 + planNameLength);
+            planInfos.add(planInfo);
         }
     }
 }

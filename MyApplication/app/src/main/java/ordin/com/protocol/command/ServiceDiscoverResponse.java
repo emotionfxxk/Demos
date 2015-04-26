@@ -20,7 +20,7 @@ public class ServiceDiscoverResponse extends Response {
     private ServiceDiscoverResponse() {}
 
     @Override
-    public void parsePayload(ByteBuffer byteBuffer) {
+    public void parsePayload(ByteBuffer byteBuffer, int payloadLength) {
         // get ip address
         byte[] ipAddressBytes = new byte[4];
         byteBuffer.get(ipAddressBytes);

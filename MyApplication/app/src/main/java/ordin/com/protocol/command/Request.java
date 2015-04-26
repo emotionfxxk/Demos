@@ -7,7 +7,7 @@ import java.nio.ByteBuffer;
  */
 public abstract class Request extends Command {
     @Override
-    public void parsePayload(ByteBuffer byteBuffer) {
+    public void parsePayload(ByteBuffer byteBuffer, int payloadLength) {
         throw new UnsupportedOperationException("Not supported");
     }
 }

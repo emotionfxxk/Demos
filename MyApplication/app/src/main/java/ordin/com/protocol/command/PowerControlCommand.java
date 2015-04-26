@@ -43,7 +43,7 @@ public class PowerControlCommand extends Response {
     }
 
     @Override
-    public void parsePayload(ByteBuffer byteBuffer) {
+    public void parsePayload(ByteBuffer byteBuffer, int payloadLength) {
         powerOn = byteBuffer.get();
         devId = byteBuffer.get();
     }

@@ -21,7 +21,7 @@ public class GetWindowStructureResponse extends Response {
     };
 
     @Override
-    public void parsePayload(ByteBuffer byteBuffer) {
+    public void parsePayload(ByteBuffer byteBuffer, int payloadLength) {
         int screenGroupCount = byteBuffer.get();
         screenGroups = new ScreenGroup[screenGroupCount];
 

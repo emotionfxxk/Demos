@@ -15,6 +15,6 @@ public class Notification extends Response {
         }
     };
     @Override
-    public void parsePayload(ByteBuffer byteBuffer) {
+    public void parsePayload(ByteBuffer byteBuffer, int payloadLength) {
     }
 }

@@ -16,7 +16,7 @@ public class GetIpListResponse extends Response {
     };
 
     @Override
-    public void parsePayload(ByteBuffer byteBuffer) {
+    public void parsePayload(ByteBuffer byteBuffer, int payloadLength) {
         // TODO: to be implemented
         throw new UnsupportedOperationException("To be implemented!");
     }

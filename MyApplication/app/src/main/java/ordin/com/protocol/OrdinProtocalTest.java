@@ -95,7 +95,7 @@ public class OrdinProtocalTest extends ActionBarActivity {
     CommandListener commandListener = new CommandListener() {
         @Override
         public void onSentCommand(Command cmd) {
-            Log.i(TAG, "onSentCommand");
+            Log.i(TAG, "onSentCommand:" + cmd.command);
         }
 
         @Override

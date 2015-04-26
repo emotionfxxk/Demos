@@ -46,6 +46,7 @@ public class ResponseParser {
         byte command;
         try {
             command = Command.getCommand(bb);
+            Log.i(TAG, "get command:" + command);
             Response.Creator creator = CREATOR_MAP.get(command);
             if(creator != null) response = creator.createInstance();
             if(response != null) response.parse(bb);
