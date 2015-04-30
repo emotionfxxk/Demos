@@ -84,6 +84,7 @@ public class ImageProcessor extends IState implements CommandListener {
         if(cmd instanceof JpgResponse) {
             JpgResponse response = (JpgResponse) cmd;
             int key = getKeyFromJpgResponse(response);
+            Log.i(TAG, "onReceivedCommand key:" + key);
             ArrayList<JpgResponse> responses = responseArrays.get(key);
             if(responses == null) {
                 responses = new ArrayList<JpgResponse>();
