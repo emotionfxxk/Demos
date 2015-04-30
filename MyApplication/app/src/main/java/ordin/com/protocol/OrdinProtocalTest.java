@@ -1,5 +1,6 @@
 package ordin.com.protocol;
 
+import android.media.Image;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.ActionBarActivity;
@@ -7,6 +8,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ImageView;
 
 import ordin.com.protocol.command.Command;
 import ordin.com.protocol.command.GetInputInfoResponse;
@@ -26,6 +28,7 @@ import ordin.com.protocol.deviceinfo.InputInfo;
 import ordin.com.protocol.deviceinfo.OutputInfo;
 import ordin.com.protocol.deviceinfo.PlanInfo;
 import ordin.com.protocol.deviceinfo.ScreenGroup;
+import ordin.com.protocol.image.ImageUpdater;
 
 
 public class OrdinProtocalTest extends ActionBarActivity {
@@ -40,10 +43,15 @@ public class OrdinProtocalTest extends ActionBarActivity {
             return true;
         }
     };
+
+    private ImageView testImageView;
+    private ImageUpdater imageUpdater = new ImageUpdater();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ordin_protocal_test);
+        testImageView = (ImageView)findViewById(R.id.test_image);
+        imageUpdater.subscribe(0, testImageView);
         handler = new Handler(callback);
         ConnectionManager.defaultManager.connect(handler, this);
     }
@@ -113,6 +121,7 @@ public class OrdinProtocalTest extends ActionBarActivity {
                 }
             } else if(cmd instanceof GetPlanWindowListResponse) {
                 GetPlanWindowListResponse r = (GetPlanWindowListResponse) cmd;
+                Log.i(TAG, "GetPlanWindowListResponse list sg window count:" + r.windowCount);
                 for (ScreenGroup sg : r.screenGroups) {
                     Log.i(TAG, "get plan window list sg:" + sg);
                 }
@@ -121,6 +130,8 @@ public class OrdinProtocalTest extends ActionBarActivity {
                 for (InputInfo ii : r.inputInfos) {
                     Log.i(TAG, "get input info, ii:" + ii);
                 }
+                ConnectionManager.defaultManager.startJpgTransport(imageUpdater,
+                        (short)480, (short)270, new byte[]{0x00});
             } else if(cmd instanceof GetOutputInfoResponse) {
                 GetOutputInfoResponse r =(GetOutputInfoResponse)cmd;
                 for (OutputInfo oi : r.outputInfos) {
@@ -135,6 +146,12 @@ public class OrdinProtocalTest extends ActionBarActivity {
         }
     };
 
+    @Override
+    public void onPause() {
+        super.onPause();
+        // release connection before go to background
+        ConnectionManager.defaultManager.disconnect();
+    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.

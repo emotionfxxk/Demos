@@ -161,13 +161,13 @@ public class ConnectionManager {
     public void disconnect() {
         cancelDiscovery();
         if(controlConnection != null) {
-            controlConnection.stop();
             controlConnection.removeStateListener(connectionStateListener);
+            controlConnection.stop();
             controlConnection = null;
         }
         if(jpgConnection != null) {
-            jpgConnection.stop();
             jpgConnection.removeStateListener(connectionStateListener);
+            jpgConnection.stop();
             jpgConnection = null;
         }
     }

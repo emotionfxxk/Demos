@@ -95,7 +95,7 @@ public abstract class Command {
             // get checksum
             byte inCheckSum = byteBuffer.get();
             if(inCheckSum != checkSum)
-                throw new InvalidParameterException("invalid checksum");
+                throw new InvalidParameterException("invalid checksum:" + inCheckSum);
         } catch (Exception e) {
             e.printStackTrace();
             throw new InvalidParameterException(e.getMessage());
@@ -114,7 +114,7 @@ public abstract class Command {
 
         bb.get(new byte[4]); // skip header
         short length = bb.getShort();
-
+        Log.i(TAG, "command packet length:" + length);
         byte[] commandPacket = new byte[length];
         System.arraycopy(headerAndLength, 0, commandPacket, 0, 6);
 

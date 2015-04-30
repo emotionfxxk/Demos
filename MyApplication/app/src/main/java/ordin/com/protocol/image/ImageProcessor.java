@@ -3,6 +3,7 @@ package ordin.com.protocol.image;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Handler;
+import android.util.Log;
 import android.util.SparseArray;
 
 import java.util.ArrayList;
@@ -23,6 +24,7 @@ import ordin.com.protocol.connection.IState;
  * Created by sean on 4/20/15.
  */
 public class ImageProcessor extends IState implements CommandListener {
+    private final static String TAG = "ImageProcessor";
     public final static int MSG_ON_REC_IMAGE = 0;
 
     public ImageProcessor() {}
@@ -43,9 +45,12 @@ public class ImageProcessor extends IState implements CommandListener {
         @Override
         public void run() {
             // decode bitmap
+            Log.i(TAG, "before decode bitmap");
+            long start = System.currentTimeMillis();
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inPreferredConfig = Bitmap.Config.RGB_565;
             Bitmap bitmap = BitmapFactory.decodeByteArray(packet.imageData, 0, packet.imageData.length, options);
+            Log.i(TAG, "after decode bitmap, cost:" + (System.currentTimeMillis() - start) + "ms");
             handler.sendMessage(handler.obtainMessage(MSG_ON_REC_IMAGE, packet.imageOrPlanIndex, 0, bitmap));
         }
     }
@@ -114,8 +119,10 @@ public class ImageProcessor extends IState implements CommandListener {
         packet.imageType = responses.get(0).imageType;
         packet.imageOrPlanIndex = responses.get(0).planIndex;
         packet.imageData = new byte[jpgDataLength];
+        Log.i(TAG, "jpgDataLength:" + jpgDataLength);
         int pos = 0;
         for(JpgResponse response: responses) {
+            Log.i(TAG, "totalCount:" + response.totalCount + "response.index:" + response.index);
             System.arraycopy(response.imageData, 0, packet.imageData, pos, response.imageData.length);
             pos += response.imageData.length;
         }

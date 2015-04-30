@@ -37,7 +37,7 @@ public class ResponseRepacker {
             subPackets.add(response);
             Response packedResponse = REPACKER_MAP.get(response.command).repack(subPackets);
             if(packedResponse != null) {
-                subPacketMap.removeAt(response.command);
+                subPacketMap.remove(packedResponse.command);
             }
             return packedResponse;
         } else {

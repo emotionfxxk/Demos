@@ -150,10 +150,11 @@ public class ServiceDiscoverer extends IState {
         @Override
         public void run() {
             android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
-            if (dicoverer.get() != null) {
-                dicoverer.get().startSendThread();
-            }
             try {
+                //socket.connect(InetAddress.getByName(Configure.BROADCAST_ADDRESS), Configure.BROADCAST_DEST_PORT);
+                if (dicoverer.get() != null) {
+                    dicoverer.get().startSendThread();
+                }
                 Log.i(TAG, "before receive bc!");
                 byte[] headerAndLength = new byte[16];
                 DatagramPacket packet = new DatagramPacket(headerAndLength, headerAndLength.length);
@@ -202,7 +203,7 @@ public class ServiceDiscoverer extends IState {
                 final DatagramPacket packet = new DatagramPacket(req.getDataPacket(), 0, req.getDataPacket().length,
                         InetAddress.getByName(Configure.BROADCAST_ADDRESS), Configure.BROADCAST_DEST_PORT);
                 Thread.sleep(50);
-                Log.i(TAG, "before send search req");
+                Log.i(TAG, "before send search req to port:" + Configure.BROADCAST_DEST_PORT + ", bind port:" + socket.getLocalPort());
                 socket.send(packet);
                 Log.i(TAG, "after send search req");
             } catch (Exception e) {

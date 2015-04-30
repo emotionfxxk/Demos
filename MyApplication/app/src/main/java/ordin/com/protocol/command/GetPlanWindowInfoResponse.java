@@ -2,6 +2,7 @@ package ordin.com.protocol.command;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.util.ArrayList;
 import java.util.List;
 
 import ordin.com.protocol.deviceinfo.InputInfo;
@@ -16,7 +17,7 @@ public class GetPlanWindowInfoResponse extends Response {
     public int windowCount;
     public int planIndex;
     public boolean isChanged;
-    public ScreenGroup[] screenGroups;
+    public List<ScreenGroup> screenGroups;
 
     private GetPlanWindowInfoResponse() {}
 
@@ -32,18 +33,10 @@ public class GetPlanWindowInfoResponse extends Response {
             GetPlanWindowInfoResponse firstResponse = (GetPlanWindowInfoResponse)subResponses.get(0);
             if(firstResponse.totalCount > subResponses.size()) return null;
 
-            int screenGroupCount = 0;
-            for(Response r : subResponses) {
-                screenGroupCount += ((GetPlanWindowInfoResponse)r).screenGroups.length;
-            }
-
-            ScreenGroup[] screenGroups = new ScreenGroup[screenGroupCount];
-            int pos = 0;
+            List<ScreenGroup> screenGroups = new ArrayList<ScreenGroup>();
             for(Response r : subResponses) {
                 GetPlanWindowInfoResponse sr = (GetPlanWindowInfoResponse) r;
-                for(ScreenGroup sg : sr.screenGroups) {
-                    screenGroups[pos++] = sg;
-                }
+                screenGroups.addAll(sr.screenGroups);
             }
             firstResponse.screenGroups = screenGroups;
             return firstResponse;
@@ -61,9 +54,10 @@ public class GetPlanWindowInfoResponse extends Response {
         windowCount = byteBuffer.get();
         planIndex = byteBuffer.get();
         isChanged = (byteBuffer.get() == 0x01);
-        screenGroups = new ScreenGroup[windowCount];
 
-        for(int pos = 0; pos < windowCount; ++pos) {
+        screenGroups = new ArrayList<ScreenGroup>();
+        int screenGroupLength = payloadLength - 5;
+        while(screenGroupLength > 0) {
             ScreenGroup sg = new ScreenGroup();
             sg.horizontalCount = byteBuffer.get();
             sg.verticalCount = byteBuffer.get();
@@ -81,7 +75,8 @@ public class GetPlanWindowInfoResponse extends Response {
                     break;
             } while(true);
             sg.description = new String(descriptionBuffer, 0, charIndex, Charset.forName("UTF-8"));
-            screenGroups[pos] = sg;
+            screenGroupLength -= (3 + charIndex);
+            screenGroups.add(sg);
         }
     }
 }
