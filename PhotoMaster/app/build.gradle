@@ -24,7 +24,9 @@ android {
                 'NDK_PROJECT_PATH=build/intermediates/ndk',
                 'NDK_LIBS_OUT=src/main/libs',
                 'APP_BUILD_SCRIPT=src/main/jni/Android.mk',
-                'APP_ABI=armeabi-v7a'
+                'APP_ABI=armeabi-v7a',
+                'LOCAL_ARM_NEON=true',
+                'ARCH_ARM_HAVE_NEON=true'
     }
     tasks.withType(JavaCompile) {
         compileTask -> compileTask.dependsOn ndkBuild
