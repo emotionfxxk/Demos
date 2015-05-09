@@ -5,7 +5,7 @@ package com.webeye.photomaster.jni;
  */
 public class ImageCompressor {
     static {
-        System.loadLibrary("app");
+        System.loadLibrary("jpegcompressor");
     }
     public static native int compressJpeg(boolean openOptimize, int quality);
 }

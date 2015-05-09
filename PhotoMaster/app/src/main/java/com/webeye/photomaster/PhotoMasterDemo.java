@@ -2,6 +2,7 @@ package com.webeye.photomaster;
 
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -9,12 +10,12 @@ import com.webeye.photomaster.jni.ImageCompressor;
 
 
 public class PhotoMasterDemo extends ActionBarActivity {
-
+    private final static String TAG = "PhotoMasterDemo";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_photo_master_demo);
-        ImageCompressor.compressJpeg(true, 50);
+        Log.i(TAG, "compress return:" + ImageCompressor.compressJpeg(true, 50));
     }
 
 

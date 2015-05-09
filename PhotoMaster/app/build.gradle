@@ -10,6 +10,24 @@ android {
         targetSdkVersion 21
         versionCode 1
         versionName "1.0"
+
+        ndk {
+            moduleName "libjpegcompressor"
+        }
+    }
+    sourceSets.main {
+        jni.srcDirs = [] //disable automatic ndk-build call
+        jniLibs.srcDir 'src/main/libs'
+    }
+    task ndkBuild(type: Exec, description: 'Compile JNI source via NDK') {
+        commandLine "/home/sean/work/dev-tools/android-ndk-r10d/ndk-build",
+                'NDK_PROJECT_PATH=build/intermediates/ndk',
+                'NDK_LIBS_OUT=src/main/libs',
+                'APP_BUILD_SCRIPT=src/main/jni/Android.mk',
+                'APP_ABI=armeabi-v7a'
+    }
+    tasks.withType(JavaCompile) {
+        compileTask -> compileTask.dependsOn ndkBuild
     }
     buildTypes {
         release {

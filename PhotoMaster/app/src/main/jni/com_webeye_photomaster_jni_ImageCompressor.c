@@ -12,7 +12,7 @@ extern "C" {
 JNIEXPORT jint JNICALL Java_com_webeye_photomaster_jni_ImageCompressor_compressJpeg
   (JNIEnv *env, jclass cls, jboolean openOptimize, jint quality) {
   // TODO: implement compress work here
-  return 0;
+  return 22;
 }
 
 #ifdef __cplusplus
