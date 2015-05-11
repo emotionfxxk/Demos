@@ -65,9 +65,9 @@ LOCAL_MODULE_PATH := $(TARGET_OUT_OPTIONAL_STATIC_LIBRARY)
  
 LOCAL_MODULE_TAGS := debug
  
-LOCAL_MODULE := libjpeg
+LOCAL_MODULE := libjpeg-turbo
 
-include $(BUILD_SHARED_LIBRARY)
+include $(BUILD_STATIC_LIBRARY)
 
 ######################################################
 ###         cjpeg                                  ###
@@ -81,7 +81,8 @@ cjpeg_SOURCES = libjpeg-turbo/cdjpeg.c libjpeg-turbo/cjpeg.c libjpeg-turbo/rdbmp
 
 LOCAL_SRC_FILES:= $(cjpeg_SOURCES)
 
-LOCAL_SHARED_LIBRARIES := libjpeg
+#LOCAL_SHARED_LIBRARIES := libjpeg-turbo
+LOCAL_STATIC_LIBRARIES := libjpeg-turbo
 
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/libjpeg-turbo/ \
                     $(LOCAL_PATH)/libjpeg-turbo//android
@@ -109,7 +110,8 @@ djpeg_SOURCES = libjpeg-turbo/cdjpeg.c libjpeg-turbo/djpeg.c libjpeg-turbo/rdcol
 
 LOCAL_SRC_FILES:= $(djpeg_SOURCES)
 
-LOCAL_SHARED_LIBRARIES := libjpeg
+#LOCAL_SHARED_LIBRARIES := libjpeg-turbo
+LOCAL_STATIC_LIBRARIES := libjpeg-turbo
 
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/libjpeg-turbo \
                     $(LOCAL_PATH)/libjpeg-turbo/android

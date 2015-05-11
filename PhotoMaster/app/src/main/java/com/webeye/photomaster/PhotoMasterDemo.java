@@ -7,7 +7,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import com.webeye.photomaster.jni.ImageCompressor;
-import com.webeye.photomaster.module.CommandCompressor;
+import com.webeye.photomaster.module.JpgOptimCmdCompressor;
+import com.webeye.photomaster.module.JpgTurboCmdCompressor;
 import com.webeye.photomaster.module.ICompressor;
 
 
@@ -20,9 +21,14 @@ public class PhotoMasterDemo extends ActionBarActivity implements ICompressor.Co
         setContentView(R.layout.activity_photo_master_demo);
         Log.i(TAG, "compress return:" + ImageCompressor.compressJpeg(true, 50));
 
-        compressor = new CommandCompressor();
+        /*
+        compressor = new JpgTurboCmdCompressor();
         compressor.init(this);
-        compressor.compressJpg("/sdcard/test_orig.jpg", "/sdcard/test_command_optim_50.jpg", true, 50, this);
+        compressor.compressJpg("/sdcard/test_orig.jpg", "/sdcard/test_optim_60.jpg", true, 60, this);*/
+
+        compressor = new JpgOptimCmdCompressor();
+        compressor.init(this);
+        compressor.compressJpg("/sdcard/test_orig.jpg", "/sdcard/test_jpegoptim_60.jpg", true, 60, this);
     }
 
 
