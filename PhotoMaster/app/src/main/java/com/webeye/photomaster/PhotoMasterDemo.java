@@ -7,15 +7,22 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import com.webeye.photomaster.jni.ImageCompressor;
+import com.webeye.photomaster.module.CommandCompressor;
+import com.webeye.photomaster.module.ICompressor;
 
 
-public class PhotoMasterDemo extends ActionBarActivity {
+public class PhotoMasterDemo extends ActionBarActivity implements ICompressor.CompressBallback {
     private final static String TAG = "PhotoMasterDemo";
+    private ICompressor compressor;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_photo_master_demo);
         Log.i(TAG, "compress return:" + ImageCompressor.compressJpeg(true, 50));
+
+        compressor = new CommandCompressor();
+        compressor.init(this);
+        compressor.compressJpg("/sdcard/test_orig.jpg", "/sdcard/test_command_optim_50.jpg", true, 50, this);
     }
 
 
@@ -39,5 +46,14 @@ public class PhotoMasterDemo extends ActionBarActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onCompressStarted(String source, String dest) {
+        Log.i(TAG, "onCompressStarted:" + source);
+    }
+    @Override
+    public void onCompressFinished(String source, String dest) {
+        Log.i(TAG, "onCompressFinished:" + source);
     }
 }
